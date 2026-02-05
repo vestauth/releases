@@ -1,10 +1,12 @@
 [![vestauth](https://vestauth.com/better-banner.png)](https://vestauth.com)
 
-*auth for agents*–from the creator of [`dotenvx`](https://github.com/dotenvx/dotenvx).
+*auth for agents*–from the creator of [`dotenv`](https://github.com/motdotla/dotenv) and [`dotenvx`](https://github.com/dotenvx/dotenvx).
 
 * identity (cryptographic)
 * authentication
 * verification
+
+[Watch demo video 📺](https://www.youtube.com/watch?v=cHARyULr_qk)
 
 &nbsp;
 
@@ -16,6 +18,7 @@ npm i -g vestauth
 
 ```sh
 vestauth agent init
+vestauth agent curl https://PROVIDER.com/TOOL
 ```
 
 <details><summary>with curl 🌐 </summary><br>
@@ -142,7 +145,7 @@ app.get('/whoami', async (req, res) => {
 
     res.json(agent)
   } catch (err) {
-    res.status(401).json({ error: { message: err.message }})
+    res.status(401).json({ code: 401, error: { message: err.message }})
   }
 })
 
@@ -157,7 +160,7 @@ listening on http://localhost:3000
 
 ```sh
 $ vestauth agent curl http://localhost:3000/whoami
-{"success":true}
+{"uid":"agent-4b94ccd425e939fac5016b6b",...}
 ```
 
 <details><summary>learn more</summary><br>
