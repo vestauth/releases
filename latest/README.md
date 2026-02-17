@@ -352,6 +352,28 @@ $ vestauth primitives verify GET https://api.vestauth.com/whoami --signature "si
 
 </details>
 
+### Library 📦
+
+Use vestauth directly in code.
+
+<details><summary>`provider.verify()`</summary><br>
+
+Verify and authenticate an agent's cryptographic identity.
+
+```js
+const agent = await vestauth.provider.verify(req.method, url, req.headers)
+```
+
+</details>
+
+&nbsp;
+
+## Available Providers
+
+> Vestauth is pioneering the auth layer for agents. Get in early on this distribution train. [Become a vestauth provider](mailto:mot@dotenvx.com)
+
+* AS2 (Agentic Secret Storage) - https://as2.dotenvx.com
+
 &nbsp;
 
 ## Compare
