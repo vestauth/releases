@@ -212,6 +212,7 @@ $ vestauth agent init
 <details><summary>`agent init --hostname`</summary><br>
 
 Use `--hostname` to override the agent API hostname (defaults to `AGENT_HOSTNAME`, then `api.vestauth.com`):
+When no scheme is provided, `https://` is assumed. For local non-TLS endpoints, pass `http://...` explicitly.
 
 ```sh
 $ vestauth agent init --hostname https://vestauth.yoursite.com
@@ -372,7 +373,16 @@ Use vestauth directly in code.
 Verify and authenticate an agent's cryptographic identity.
 
 ```js
-const agent = await vestauth.tool.verify(req.method, url, req.headers)
+const agent = await vestauth.tool.verify(httpMethod, url, headers)
+```
+
+</details>
+<details><summary>`primitives.verify()`</summary><br>
+
+Verify and authenticate a signed http request.
+
+```js
+await vestauth.primitives.verify(httpMethod, url, headers, publicJwk)
 ```
 
 </details>
@@ -381,7 +391,7 @@ const agent = await vestauth.tool.verify(req.method, url, req.headers)
 
 ## Available Tools
 
-> Vestauth is pioneering the auth layer for agents. Get in early on this distribution train. [Become a vestauth tool](mailto:mot@dotenvx.com)
+> List of tools. We're actively building tools and looking for others to help grow the vestauth ecosystem with calls for tools like sending email, sms, uploading files and more. Vestauth agents need more tools. A tool is just a sharp API call. Add your tool here.
 
 * AS2 (Agentic Secret Storage) - https://as2.dotenvx.com
 
