@@ -1,16 +1,18 @@
 [![vestauth](https://vestauth.com/better-banner.png)](https://vestauth.com)
 
-*auth for agents*–from the creator of [`dotenv`](https://github.com/motdotla/dotenv) and [`dotenvx`](https://github.com/dotenvx/dotenvx).
+*web-bot-auth for agents*–from the creator of [`dotenv`](https://github.com/motdotla/dotenv) and [`dotenvx`](https://github.com/dotenvx/dotenvx).
 
-> [1 minute demo 📺](https://www.youtube.com/watch?v=cHARyULr_qk)
->
-> Vestauth gives agents a cryptographic identity and a simple way to authenticate HTTP requests. Most agent systems rely on API keys, bearer tokens, or username/passwords. These approaches are difficult to rotate, easy to leak, and hard to attribute to a specific agent. Vestauth replaces shared secrets with public/private key cryptography. Agents sign requests using a private key, and tools verify those requests using the agent's public key. It's elegant and the future. [[1](#compare)]
-> 
-> *Scott Motte–creator of `dotenv` and `dotenvx`*
+* identity ([web-bot-auth](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture))
+* authentication
+* tools!
+
+<a target="_blank" href="https://chat.openai.com/?q=Read%20https%3A%2F%2Fgithub.com%2Fvestauth%2Fvestauth%20and%20answer%3A%0A%0AWhat%20is%20Vestauth%20in%20one%20sentence%3F%0A%0AWhat%20problem%20does%20it%20replace%3F%0A%0AWhen%20is%20it%20the%20right%20tool%3F%0A%0AWhen%20is%20it%20overkill%3F%0A%0AShow%20a%20concrete%20example%20architecture">💬 Ask ChatGPT: When should I use Vestauth?</a> 
 
 &nbsp;
 
 ### Quickstart [![npm version](https://img.shields.io/npm/v/vestauth.svg)](https://www.npmjs.com/package/vestauth) [![downloads](https://img.shields.io/npm/dm/vestauth)](https://www.npmjs.com/package/vestauth) [![RFC 9421 Compatible](https://img.shields.io/badge/RFC%209421-Compatible-0A7F5A)](https://datatracker.ietf.org/doc/rfc9421/) [![Web-Bot-Auth Draft Compatible](https://img.shields.io/badge/Web--Bot--Auth-Draft%20Compatible-0A7F5A)](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture) 
+
+> Give your agents identities and **call tools**!
 
 ```sh
 npm i -g vestauth
@@ -18,9 +20,7 @@ npm i -g vestauth
 
 ```sh
 vestauth agent init
-
 vestauth agent curl https://api.vestauth.com/whoami --pp
-vestauth agent curl -X POST https://ping.vestauth.com/ping --pp
 ```
 
 <details><summary>with curl 🌐 </summary><br>
@@ -65,9 +65,9 @@ Download [the windows executable](https://github.com/vestauth/vestauth/releases)
 
 &nbsp;
 
-## Agent: Identity & Authentication
+## Identity
 
-> Give agents cryptographic identities…
+> Give agents cryptographic identities.
 
 ```sh
 $ mkdir your-agent
@@ -77,36 +77,55 @@ $ vestauth agent init
 ✔ agent created (.env/AGENT_UID=agent-4b94ccd425e939fac5016b6b)
 ```
 
-> …and sign their `curl` requests with cryptographic authentication.
+<details><summary>learn more</summary><br>
+
+Your agent's identity lives in a simple `.env` file.
+
+```ini
+# .env
+AGENT_UID="agent-4b94ccd425e939fac5016b6b"
+AGENT_PUBLIC_JWK="{"crv":"Ed25519","x":"py2xNaAfjKZiau-jtmJls6h_3n8xJ1Ur0ie-n9b8zWg","kty":"OKP","kid":"B0u80Gw28W9U2Jl5t_EBiWeBajO2104kOYZ9Ikucl5I"}"
+AGENT_PRIVATE_JWK="{"crv":"Ed25519","d":"Z9vbwN-3eiFMVv_TPWXOxqSMJAT21kZvejWi72yiAaQ","x":"py2xNaAfjKZiau-jtmJls6h_3n8xJ1Ur0ie-n9b8zWg","kty":"OKP","kid":"B0u80Gw28W9U2Jl5t_EBiWeBajO2104kOYZ9Ikucl5I"}"
+```
+
+[💬 Ask ChatGPT: Are HTTP message signatures more secure than API keys?](https://chat.openai.com/?q=Are%20HTTP%20message%20signatures%20more%20secure%20than%20API%20keys%3F)
+
+</details>
+
+&nbsp;
+
+## Authentication
+
+> Authenticate agents – `vestauth.tool.verify`…
+
+```js
+...
+const vestauth = require('vestauth')
+
+app.get('/whoami', async (req, res) => {
+  try {
+    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
+    const agent = await vestauth.tool.verify(req.method, url, req.headers)
+
+    res.json(agent)
+  } catch (err) {
+    res.status(401).json({ code: 401, error: { message: err.message }})
+  }
+})
+...
+```
+
+> …the agents sign HTTP requests with a drop-in curl wrapper.
 
 ```sh
 > SIGNED - 200
 $ vestauth agent curl https://api.vestauth.com/whoami
 {"uid":"agent-4b94ccd425e939fac5016b6b",...}
-
-> UNSIGNED - 400
-$ curl https://api.vestauth.com/whoami
-{"error":{"status":400,"code":null,"message":"bad_request","help":null,"meta":null}}
 ```
 
 <details><summary>learn more</summary><br>
 
-First `vestauth agent init` populates a `.env` file with an `AGENT_PUBLIC_JWK`, `AGENT_PRIVATE_JWK`, and `AGENT_UID`.
-
-```ini
-# .env
-AGENT_PUBLIC_JWK="{"crv":"Ed25519","x":"py2xNaAfjKZiau-jtmJls6h_3n8xJ1Ur0ie-n9b8zWg","kty":"OKP","kid":"B0u80Gw28W9U2Jl5t_EBiWeBajO2104kOYZ9Ikucl5I"}"
-AGENT_PRIVATE_JWK="{"crv":"Ed25519","d":"Z9vbwN-3eiFMVv_TPWXOxqSMJAT21kZvejWi72yiAaQ","x":"py2xNaAfjKZiau-jtmJls6h_3n8xJ1Ur0ie-n9b8zWg","kty":"OKP","kid":"B0u80Gw28W9U2Jl5t_EBiWeBajO2104kOYZ9Ikucl5I"}"
-AGENT_UID="agent-4b94ccd425e939fac5016b6b"
-```
-
-| Variable | Role | Usage |
-|----------|------------|------------|
-| `AGENT_PUBLIC_JWK` | Verification | Published for tool signature validation |
-| `AGENT_PRIVATE_JWK` | Signing | Used locally to sign HTTP requests |
-| `AGENT_UID` | Identity | Builds discovery FQDN and identifies the agent |
-
-Then `vestauth agent curl` autosigns `curl` requests – injecting valid signed headers according to the [web-bot-auth draft](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture). You can peek these with the built-in `headers` primitive.
+`vestauth agent curl` autosigns `curl` requests – injecting valid signed headers according to the [web-bot-auth draft](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture). You can peek these with the built-in `headers` primitive.
 
 ```sh
 $ vestauth primitives headers GET https://api.vestauth.com/whoami --pp
@@ -117,73 +136,99 @@ $ vestauth primitives headers GET https://api.vestauth.com/whoami --pp
 }
 ```
 
-Vestauth turns `curl` into a powerful primitive for tool-side agent identity, verification, and authentication. See the next section.
-
 </details>
 
 &nbsp;
 
-## Tool: Verification 
+## Tools
 
-> Verify requests and safely trust agent identity using cryptographic proof.
-
-```js
-// index.js
-const express = require('express')
-const vestauth = require('vestauth')
-const app = express()
-
-// vestauth agent curl http://localhost:3000/whoami
-app.get('/whoami', async (req, res) => {
-  try {
-    const url = `${req.protocol}://${req.get('host')}${req.originalUrl}`
-
-    // --------------------------------------------------------------------------------
-    // 🪪 Reveal the agent's cryptographic identity.                                 //
-    // The `tool.verify` method turns your endpoint into a cryptographically     //
-    // authenticated tool — verifying signatures, keys, and returning the agent. //
-    // --------------------------------------------------------------------------------
-    const agent = await vestauth.tool.verify(req.method, url, req.headers)
-
-    res.json(agent)
-  } catch (err) {
-    res.status(401).json({ code: 401, error: { message: err.message }})
-  }
-})
-
-app.listen(3000, () => { console.log('listening on http://localhost:3000') })
-```
+> Call tools!
 
 ```sh
-$ npm install express vestauth --save
-$ node index.js
-listening on http://localhost:3000
+$ vestauth agent curl -X POST https://as2.dotenvx.com/set -d '{"KEY":"value"}'
+$ vestauth agent curl https://as2.dotenvx.com/get
 ```
+
+#### List of tools
+
+* Ping - https://ping.vestauth.com
+* Agentic Secret Storage - https://as2.dotenvx.com
+* Geo IP - coming soon
+* Filesystem - coming soon
+* Send/Receive Email - coming
+* Send/Receive SMS - coming
+* Send/Receive Telegram - coming
+* Send/Receive WhatsApp - coming
+* Human-in-the-loop - coming
+* Rotate NPM Tokens - coming
+* Rotate GitHub Tokens - coming
+* Working on a tool? Tell us and wel'll list it.
+
+&nbsp;
+
+## Self-hosting
+
+> Run your own Vestauth server.
+
+| |
+|---|
+| <a target="_blank" href="https://github.com/user-attachments/assets/b05ba917-c37a-4a53-9ec7-c5c8d78ad1c7"><img src="https://github.com/user-attachments/assets/b05ba917-c37a-4a53-9ec7-c5c8d78ad1c7" alt="self-hosting vestauth" width="480"></a> |
+
+Initialize the server and run migrations (postgres).
 
 ```sh
-$ vestauth agent curl http://localhost:3000/whoami
-{"uid":"agent-4b94ccd425e939fac5016b6b",...}
+$ curl -sSf https://vestauth.sh | sh
+$ vestauth server init
+$ vestauth server db:create
+$ vestauth server db:migrate
 ```
 
-<details><summary>learn more</summary><br>
+Start the server.
 
 ```sh
-Agent → Signs Request → Tool → Discovers Keys → Verifies Signature → Trusted Agent
+$ vestauth server start
+vestauth server listening on http://localhost:3000
 ```
 
-Vestauth verifies requests using public key discovery and HTTP Message Signature validation.
+And use your server's hostname when creating agents.
 
-When a signed request is received, Vestauth:
+```sh
+$ mkdir your-agent
+$ cd your-agent
 
-1. Extracts the agent identity from the `Signature-Agent` header.
-2. Resolves the agent's discovery endpoint.
-3. Fetches the agent's public keys from its `.well-known/http-message-signatures-directory`.
-4. Verifies the request signature using RFC 9421.
-5. Validates timestamps and nonce protections to prevent replay attacks.
+$ vestauth agent init --hostname http://localhost:3000
+✔ agent created (.env/AGENT_UID=agent-4b94ccd425e939fac5016b6b)
+```
 
-If verification succeeds, the tool can safely trust the agent's cryptographic identity.
+That's it. Your Vestauth ([web-bot-auth](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture)) infrastructure is now running under your control.
 
-Vestauth intentionally separates identity discovery from verification to support key rotation and distributed agent infrastructure.
+More details
+
+<details><summary>config</summary><br>
+
+Edit the `.env` file to configure your server.
+
+```ini
+PORT="3000"
+HOSTNAME="http://localhost:3000"
+DATABASE_URL="postgres://localhost/vestauth_production"
+```
+
+For example, in production:
+
+* Change `HOSTNAME` to its production url - e.g. `vestauth.yoursite.com`
+* Change `DATABASE_URL` to a managed postgres - e.g. `postgresql://USER:PASS@aws-1-us-east-1.pooler.supabase.com:5432/postgres`
+
+</details>
+<details><summary>production note</summary><br>
+
+> [!WARNING]
+>
+> **Production note:** Configure a wildcard DNS record for `*.${HOSTNAME}`.
+> 
+> Example: if `HOSTNAME=vestauth.yourapp.com`, add `*.vestauth.yourapp.com`.
+> 
+> Required for `.well-known` discovery per the [web-bot-auth](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture) spec.
 
 </details>
 
@@ -311,6 +356,17 @@ Verify agent.
 ```sh
 $ vestauth tool verify GET https://api.vestauth.com/whoami --signature "sig1=:H1kxwSRWFbIzKbHaUy4hQFp/JrmVTX//72JPHcW4W7cPt9q6LytRJgx5pUgWrrr7DCcMWgx/jpTPc8Ht8SZ3CQ==:" --signature-input "sig1=(\"@authority\");created=1770396709;keyid=\"FGzgs758DBGnI1S0BejChDsK0IKZm3qPpOOXdRnnBkM\";alg=\"ed25519\";expires=1770397009;nonce=\"BZSDVktdkjO6XH5jafAdPDttsB6eytXO7u8KXJN1tMtd5bprE3rp08HiaTRo7H6gZGtYb4_qtL7RiGi8P2Gq7w\";tag=\"web-bot-auth\"" --signature-agent "sig1=agent-609a4fd2ebf4e6347108c517.api.vestauth.com"
 {"uid":"agent-609a4fd2ebf4e6347108c517",...}
+```
+
+</details>
+<details><summary>`server init`</summary><br>
+
+Create/update server `.env` for self-hosting (`PORT`, `HOSTNAME`, `DATABASE_URL`).
+
+```sh
+$ vestauth server init
+✔ ready (.env/HOSTNAME=http://localhost:3000)
+⮕ next run: [vestauth server start]
 ```
 
 </details>
@@ -461,11 +517,16 @@ await vestauth.primitives.verify(httpMethod, url, headers, publicJwk)
 
 &nbsp;
 
-## Available Tools
+## Standards
 
-> List of tools. We're actively building tools and looking for others to help grow the vestauth ecosystem with calls for tools like sending email, sms, uploading files and more. Vestauth agents need more tools. A tool is just a sharp API call. Add your tool here.
+> Vestauth gives agents a cryptographic identity and a simple way to authenticate HTTP requests. Most agent systems rely on API keys, bearer tokens, or username/passwords. These approaches are difficult to rotate, easy to leak, and hard to attribute to a specific agent. Vestauth replaces shared secrets with public/private key cryptography. Agents sign requests using a private key, and tools verify those requests using the agent's public key. All built on open internet standards. It's elegant and the future.
 
-* AS2 (Agentic Secret Storage) - https://as2.dotenvx.com
+| Specification | Purpose |
+|------------|------------|
+| **[RFC 9421](https://datatracker.ietf.org/doc/rfc9421/)** | Defines how requests are cryptographically signed and verified |
+| **[Web-Bot-Auth Draft](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture)** | Defines headers and authentication architecture for autonomous agents |
+
+Vestauth follows these specifications to ensure interoperability between agents and tools while avoiding vendor lock-in. Vestauth focuses on developer ergonomics while staying compliant with these emerging standards.
 
 &nbsp;
 
@@ -497,26 +558,6 @@ Legend: ✅ strong fit, ⚠️ partial/conditional, ❌ poor fit
 
 &nbsp;
 
-## Standards
-
-Vestauth builds on open internet standards for agent authentication.
-
-| Specification | Purpose |
-|------------|------------|
-| **[RFC 9421 – HTTP Message Signatures](https://datatracker.ietf.org/doc/rfc9421/)** | Defines how requests are cryptographically signed and verified |
-| **[Web-Bot-Auth Draft](https://datatracker.ietf.org/doc/html/draft-meunier-web-bot-auth-architecture)** | Defines headers and authentication architecture for autonomous agents |
-
-Vestauth follows these specifications to ensure interoperability between agents and tools while avoiding vendor lock-in. Vestauth focuses on developer ergonomics while staying compliant with these emerging standards.
-
-&nbsp;
-
-## Demo
-
-[![vestauth:ping](https://vestauth.com/demo.png)](https://ping.vestauth.com)
-> [https://ping.vestauth.com](https://ping.vestauth.com)
-
-&nbsp;
-
 ## FAQ
 
 <details><summary>What problem does Vestauth solve?</summary><br>
@@ -530,7 +571,15 @@ Vestauth follows these specifications to ensure interoperability between agents 
 &nbsp;
 
 </details>
+<details><summary>Is there a demo video?</summary><br>
 
+> Yes
+>
+> [Watch the demo](https://www.youtube.com/watch?v=cHARyULr_qk)
+
+&nbsp;
+
+</details>
 <details><summary>Why not just use API keys?</summary><br>
 
 > API keys are shared secrets. Anyone who obtains the key can impersonate the client, and keys are difficult to rotate safely.
