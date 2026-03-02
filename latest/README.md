@@ -145,16 +145,92 @@ $ vestauth primitives headers GET https://api.vestauth.com/whoami --pp
 > Call tools!
 
 ```sh
-$ vestauth agent curl -X POST https://as2.dotenvx.com/set -d '{"KEY":"value"}'
-$ vestauth agent curl https://as2.dotenvx.com/get
+$ vestauth agent curl https://sfs.vestauth.com/write -d '{"filepath":"/hello.md", "content":"hello"}'
+$ vestauth agent curl https://sfs.vestauth.com/list
 ```
 
-#### List of tools
+#### First Party Tools
 
-* Ping - https://ping.vestauth.com
-* Agentic Secret Storage - https://as2.dotenvx.com
+<details><summary>`SFS` Simple File System</summary><br/>
+
+> SFS is a simple file system for vestauth agents.
+> [sfs.vestauth.com](https://sfs.vestauth.com)
+
+```sh
+# write a file
+vestauth agent curl https://sfs.vestauth.com/write -d '{"filepath":"/hello.md", "content":"hello"}'
+
+# delete a file
+vestauth agent curl https://sfs.vestauth.com/delete -d '{"filepath":"/hello.md"}'
+
+# list files
+vestauth agent curl https://sfs.vestauth.com/list
+
+# read a file
+vestauth agent curl https://sfs.vestauth.com/read -d '{"filepath":"/hello.md"}'
+```
+
+&nbsp;
+
+</details>
+<details><summary>`Ping` ping.vestauth.com</summary><br/>
+
+> Ping is a demonstration of vestauth.
+> [ping.vestauth.com](https://ping.vestauth.com)
+
+```sh
+# make a ping
+vestauth agent curl https://ping.vestauth.com/ping
+```
+
+&nbsp;
+
+</details>
+
+#### Third Party Tools
+
+<details><summary>`AS2` Agentic Secret Storage</summary><br/>
+
+> AS2 is a simple, agent-friendly secret storage.
+> [as2.dotenvx.com](https://as2.dotenvx.com)
+
+```sh
+# set a secret
+vestauth agent curl https://as2.dotenvx.com/set -d '{"KEY":"value"}'
+
+# get all secrets
+vestauth agent curl "https://as2.dotenvx.com/get"
+
+# get single secret
+vestauth agent curl "https://as2.dotenvx.com/get?key=KEY"
+
+# get multiple secrets
+vestauth agent curl "https://as2.dotenvx.com/get?key=KEY,TWILIO"
+```
+
+&nbsp;
+
+</details>
+<details><summary>`Docle` Check if email address is real</summary><br>
+
+> Check if an email address is real before you hit send. Verifies syntax, DNS, MX records, SMTP mailbox existence, and cross-references multiple providers. All in real time, no signup required.
+> 
+> [learn more](https://github.com/treadiehq/docle) 
+
+```sh
+# verify an email
+vestauth agent curl https://docle.co/api/verify -d '{"emails":["test@example.com"]}'
+
+# check your usage
+vestauth agent curl https://docle.co/api/agent/usage -X GET
+```
+
+&nbsp;
+
+</details>
+<details><summary>more coming soon</summary><br/>
+
 * Geo IP - coming soon
-* Filesystem - coming soon
 * Send/Receive Email - coming
 * Send/Receive SMS - coming
 * Send/Receive Telegram - coming
@@ -163,6 +239,8 @@ $ vestauth agent curl https://as2.dotenvx.com/get
 * Rotate NPM Tokens - coming
 * Rotate GitHub Tokens - coming
 * Working on a tool? Tell us and wel'll list it.
+
+</details>
 
 &nbsp;
 
