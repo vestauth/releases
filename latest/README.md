@@ -21,6 +21,9 @@ npm i -g vestauth
 ```sh
 vestauth agent init
 vestauth agent curl https://api.vestauth.com/whoami --pp
+vestauth agent curl https://sfs.vestauth.com/write -d '{"filepath":"/hello.md", "content":"hello"}'
+vestauth agent curl https://sfs.vestauth.com/list
+vestauth agent curl https://sam.vestauth.com/send -d '{"to":"you@email.com", "text":"hello from agent"}'
 ```
 
 <details><summary>with curl 🌐 </summary><br>
@@ -128,15 +131,29 @@ vestauth agent curl https://sfs.vestauth.com/read -d '{"filepath":"/hello.md"}'
 &nbsp;
 
 </details>
-<details><summary>`GEO` geo.vestauth.com</summary><br/>
+<details><summary>`SAM` Simple Agent Mail</summary><br/>
 
-> GEO returns the current geo-coordinates of a vestauth agent.
+> SAM is a simple way to send email for vestauth agents.
+>
+> [sam.vestauth.com](https://sam.vestauth.com)
+
+```sh
+# send an email
+vestauth agent curl https://sam.vestauth.com/send -d '{"to":"you@email.com", "text":"i am agent"}'
+```
+
+&nbsp;
+
+</details>
+<details><summary>`GEO` Latitude and Longitude</summary><br/>
+
+> GEO returns the current latitude and longitude of a vestauth agent.
 >
 > [geo.vestauth.com](https://geo.vestauth.com)
 
 ```sh
-# make a ping
-vestauth agent curl https://ping.vestauth.com/ping
+# return latitude and longitude
+vestauth agent curl https://geo.vestauth.com/geo
 ```
 
 &nbsp;
